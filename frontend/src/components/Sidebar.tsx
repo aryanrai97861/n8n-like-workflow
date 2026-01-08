@@ -9,7 +9,7 @@ const Sidebar = () => {
 
     return (
         <aside className="w-64 bg-slate-900 border-r border-slate-700 p-4 flex flex-col gap-4">
-            <div className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent mb-4">
+            <div className="text-xl font-bold bg-linear-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent mb-4">
                 Workflow Builder
             </div>
 

@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from typing import List
-from app.core.database import get_db, Base, engine
+from app.core.database import get_db, Base, init_db
 from app.models.workflow import WorkflowModel
 from app.schemas.workflow import WorkflowCreate, WorkflowDB, ExecutionRequest, ExecutionResponse
 from app.services.workflow import execute_workflow
@@ -11,8 +12,11 @@ import fitz
 import shutil
 import os
 
-# Create Tables (Simple migration)
-Base.metadata.create_all(bind=engine)
+# Initialize database tables
+try:
+    init_db()
+except Exception as e:
+    print(f"Database initialization note: {e}")
 
 router = APIRouter()
 
@@ -42,32 +46,41 @@ async def upload_document(file: UploadFile = File(...)):
 # CRUD Endpoints
 
 @router.post("/workflows", response_model=WorkflowDB)
-def create_workflow(workflow: WorkflowCreate, db: Session = Depends(get_db)):
+async def create_workflow(workflow: WorkflowCreate, db: AsyncSession = Depends(get_db)):
     db_workflow = WorkflowModel(
         name=workflow.name, 
         description=workflow.description,
         definition=workflow.definition.model_dump()
     )
     db.add(db_workflow)
-    db.commit()
-    db.refresh(db_workflow)
+    await db.flush()
+    await db.refresh(db_workflow)
     return db_workflow
 
 @router.get("/workflows", response_model=List[WorkflowDB])
-def read_workflows(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    workflows = db.query(WorkflowModel).offset(skip).limit(limit).all()
+async def read_workflows(skip: int = 0, limit: int = 100, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(WorkflowModel).offset(skip).limit(limit)
+    )
+    workflows = result.scalars().all()
     return workflows
 
 @router.get("/workflows/{workflow_id}", response_model=WorkflowDB)
-def read_workflow(workflow_id: int, db: Session = Depends(get_db)):
-    workflow = db.query(WorkflowModel).filter(WorkflowModel.id == workflow_id).first()
+async def read_workflow(workflow_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(WorkflowModel).where(WorkflowModel.id == workflow_id)
+    )
+    workflow = result.scalar_one_or_none()
     if workflow is None:
         raise HTTPException(status_code=404, detail="Workflow not found")
     return workflow
 
 @router.put("/workflows/{workflow_id}", response_model=WorkflowDB)
-def update_workflow(workflow_id: int, workflow: WorkflowCreate, db: Session = Depends(get_db)):
-    db_workflow = db.query(WorkflowModel).filter(WorkflowModel.id == workflow_id).first()
+async def update_workflow(workflow_id: int, workflow: WorkflowCreate, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        select(WorkflowModel).where(WorkflowModel.id == workflow_id)
+    )
+    db_workflow = result.scalar_one_or_none()
     if db_workflow is None:
         raise HTTPException(status_code=404, detail="Workflow not found")
     
@@ -75,6 +88,6 @@ def update_workflow(workflow_id: int, workflow: WorkflowCreate, db: Session = De
     db_workflow.description = workflow.description
     db_workflow.definition = workflow.definition.model_dump()
     
-    db.commit()
-    db.refresh(db_workflow)
+    await db.flush()
+    await db.refresh(db_workflow)
     return db_workflow

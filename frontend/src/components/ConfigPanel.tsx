@@ -104,6 +104,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ selectedNode, setNodes }) => 
                         value={config.apiKey || ''}
                         onChange={(e) => handleConfigChange('apiKey', e.target.value)}
                     />
+                    
                     <label className="text-sm font-medium text-slate-300">Custom Prompt System</label>
                     <textarea
                         className="w-full h-32 bg-slate-800 border border-slate-600 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-blue-500"
@@ -111,6 +112,24 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ selectedNode, setNodes }) => 
                         value={config.prompt || ''}
                         onChange={(e) => handleConfigChange('prompt', e.target.value)}
                     />
+                    
+                    <div className="flex items-center gap-2 p-3 bg-slate-800 rounded-lg border border-slate-600">
+                        <input
+                            type="checkbox"
+                            id="webSearch"
+                            checked={config.useWebSearch || false}
+                            onChange={(e) => handleConfigChange('useWebSearch', e.target.checked)}
+                            className="w-4 h-4 text-blue-600 bg-slate-700 border-slate-500 rounded focus:ring-blue-500"
+                        />
+                        <label htmlFor="webSearch" className="text-sm text-slate-300 cursor-pointer">
+                            Enable Web Search (SerpAPI)
+                        </label>
+                    </div>
+                    {config.useWebSearch && (
+                        <p className="text-xs text-slate-400 bg-blue-900/20 border border-blue-700/30 rounded p-2">
+                            ℹ️ Web search results will be included in the LLM context
+                        </p>
+                    )}
                 </div>
             )}
 
