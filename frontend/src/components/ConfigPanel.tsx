@@ -150,13 +150,12 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ selectedNode, setNodes, onClo
                 <label className="block text-sm font-semibold text-slate-700 mb-2">Model</label>
                 <select
                     className="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={config.model || 'GPT-4o-Mini'}
+                    value={config.model || 'gemini-2.0-flash'}
                     onChange={(e) => handleConfigChange('model', e.target.value)}
                 >
-                    <option value="GPT-4o-Mini">GPT-4o-Mini</option>
-                    <option value="gemini-pro">Gemini Pro</option>
-                    <option value="gemini-pro-vision">Gemini Pro Vision</option>
-                    <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                    <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+                    <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                    <option value="gemini-flash-latest">Gemini Flash Latest</option>
                 </select>
             </div>
 
@@ -209,14 +208,12 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ selectedNode, setNodes, onClo
                     </div>
                     <button
                         onClick={() => handleConfigChange('useWebSearch', !config.useWebSearch)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            config.useWebSearch ? 'bg-green-500' : 'bg-slate-300'
-                        }`}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${config.useWebSearch ? 'bg-green-500' : 'bg-slate-300'
+                            }`}
                     >
                         <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                config.useWebSearch ? 'translate-x-6' : 'translate-x-1'
-                            }`}
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${config.useWebSearch ? 'translate-x-6' : 'translate-x-1'
+                                }`}
                         />
                     </button>
                 </div>
@@ -273,7 +270,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ selectedNode, setNodes, onClo
 
     const getNodeTitle = () => {
         if (!selectedNode) return 'Configure Node';
-        
+
         const titles: { [key: string]: string } = {
             user_query: 'User Input',
             knowledge_base: 'Knowledge Base',

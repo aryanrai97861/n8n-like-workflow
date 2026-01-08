@@ -2,14 +2,19 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import WorkflowBuilder from '../components/WorkflowBuilder';
 import Sidebar from '../components/Sidebar';
+import ChatInterface from '../components/ChatInterface';
 import { ReactFlowProvider } from 'reactflow';
 import axios from 'axios';
-import { ChevronLeft, Play, Save } from 'lucide-react';
+import { ChevronLeft, Play, Save, MessageCircle } from 'lucide-react';
 
 const Editor = () => {
     const { id } = useParams();
     const [workflowName, setWorkflowName] = useState("Untitled Stack");
     const [initialData, setInitialData] = useState(null);
+    const [isChatOpen, setIsChatOpen] = useState(false);
+
+    // Store workflow data for the chat interface
+    const [chatWorkflowData, setChatWorkflowData] = useState<any>(null);
 
     const handleRun = () => {
         if ((window as any).runWorkflow) {
@@ -21,6 +26,14 @@ const Editor = () => {
         if ((window as any).saveWorkflow) {
             (window as any).saveWorkflow();
         }
+    };
+
+    const handleOpenChat = () => {
+        // Get the current workflow data from the window object (set by WorkflowBuilder)
+        if ((window as any).getWorkflowData) {
+            setChatWorkflowData((window as any).getWorkflowData());
+        }
+        setIsChatOpen(true);
     };
 
     useEffect(() => {
@@ -54,21 +67,27 @@ const Editor = () => {
                 </div>
                 <div className="flex items-center gap-3">
                     <span className="text-xs text-slate-400">Auto-saved</span>
-                    <button 
+                    <button
                         onClick={handleSave}
                         className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-md text-sm font-medium transition-colors"
                     >
                         <Save className="w-4 h-4" />
                         Save
                     </button>
-                    <button 
+                    <button
                         onClick={handleRun}
                         className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-md text-sm font-medium transition-colors shadow-lg shadow-green-600/30"
                     >
                         <Play className="w-4 h-4" />
                         Run Workflow
                     </button>
-                    <button className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors">Share</button>
+                    <button
+                        onClick={handleOpenChat}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-sm font-medium transition-colors shadow-lg shadow-blue-600/30"
+                    >
+                        <MessageCircle className="w-4 h-4" />
+                        Chat with Stack
+                    </button>
                 </div>
             </div>
 
@@ -81,6 +100,13 @@ const Editor = () => {
                     )}
                 </ReactFlowProvider>
             </div>
+
+            {/* Chat Modal */}
+            <ChatInterface
+                isOpen={isChatOpen}
+                onClose={() => setIsChatOpen(false)}
+                workflowData={chatWorkflowData}
+            />
         </div>
     );
 };

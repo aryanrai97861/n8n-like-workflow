@@ -56,9 +56,25 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, initialDa
     useEffect(() => {
         (window as any).runWorkflow = onRunWorkflow;
         (window as any).saveWorkflow = onSave;
+        (window as any).getWorkflowData = () => ({
+            nodes: nodes.map(n => ({
+                id: n.id,
+                type: n.type,
+                position: n.position,
+                data: n.data
+            })),
+            edges: edges.map(e => ({
+                id: e.id,
+                source: e.source,
+                target: e.target,
+                sourceHandle: e.sourceHandle,
+                targetHandle: e.targetHandle
+            }))
+        });
         return () => {
             delete (window as any).runWorkflow;
             delete (window as any).saveWorkflow;
+            delete (window as any).getWorkflowData;
         };
     }, [nodes, edges, workflowId]);
 

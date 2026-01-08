@@ -50,8 +50,8 @@ async def generate_response(
         if context:
             full_prompt = f"Context:\n{context}\n\nQuestion:\n{prompt}"
         
-        # Use correct model name - map old names to new
-        if model_name in ["gemini-pro", "gpt-4o-mini", "GPT-4o-Mini"]:
+        # If model not in available list, use default
+        if model_name not in AVAILABLE_MODELS:
             model_name = DEFAULT_MODEL
         
         # Generate response
