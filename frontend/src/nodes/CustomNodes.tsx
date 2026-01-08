@@ -154,7 +154,7 @@ export const KnowledgeBaseNode = memo(({ id, data, selected }: NodeProps) => {
 });
 
 export const LLMNode = memo(({ data, selected }: NodeProps) => {
-    const model = data.config?.model || "GPT-4o-Mini";
+    const model = data.config?.model || "gemini-2.0-flash";
     const apiKey = data.config?.apiKey || "";
     const prompt = data.config?.prompt || "You are a helpful PDF assistant. Use web search if the PDF lacks context.\n\nCONTEXT: {context}\nUser Query: {query}";
     const temperature = data.config?.temperature || "0.75";
@@ -172,9 +172,9 @@ export const LLMNode = memo(({ data, selected }: NodeProps) => {
                     <div>
                         <label className="block text-xs font-medium text-slate-600 mb-1.5">Model</label>
                         <select className="w-full bg-white border border-slate-300 rounded-lg text-sm p-2 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                            <option>{model}</option>
-                            <option>gemini-pro</option>
-                            <option>gemini-pro-vision</option>
+                            <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+                            <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                            <option value="gemini-flash-latest">Gemini Flash Latest</option>
                         </select>
                     </div>
 

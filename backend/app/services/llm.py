@@ -5,8 +5,9 @@ from typing import Optional
 genai.configure(api_key=settings.GOOGLE_API_KEY)
 
 # Available Gemini models
-AVAILABLE_MODELS = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.0-flash"]
-DEFAULT_MODEL = "gemini-1.5-flash"
+# Available Gemini models
+AVAILABLE_MODELS = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-flash-latest"]
+DEFAULT_MODEL = "gemini-2.0-flash"
 
 async def generate_response(
     prompt: str, 
