@@ -50,6 +50,17 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, initialDa
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [selectedNode, setSelectedNode] = useState<Node | null>(null);
     const [saving, setSaving] = useState(false);
+    const [isExecuting, setIsExecuting] = useState(false);
+
+    // Expose methods to parent via custom event
+    useEffect(() => {
+        (window as any).runWorkflow = onRunWorkflow;
+        (window as any).saveWorkflow = onSave;
+        return () => {
+            delete (window as any).runWorkflow;
+            delete (window as any).saveWorkflow;
+        };
+    }, [nodes, edges, workflowId]);
 
     useEffect(() => {
         if (initialData) {
@@ -102,8 +113,6 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, initialDa
         setSelectedNode(null);
     }, []);
 
-    const [isExecuting, setIsExecuting] = useState(false);
-
     const onRunWorkflow = async () => {
         // Find the User Query node to get the query
         const userQueryNode = nodes.find(n => n.type === 'user_query');
@@ -131,11 +140,8 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, initialDa
                 }))
             };
 
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-            const response = await axios.post(`${apiUrl}/api/execute`, {
-                workflow: workflowDef,
-                user_query: userQueryNode.data.config.query
-            });
+            const { executeWorkflow } = await import('../services/api');
+            const response = await executeWorkflow(workflowDef, userQueryNode.data.config.query);
 
             // Update the Output node with the result
             setNodes(nds =>
@@ -147,8 +153,8 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, initialDa
                                 ...node.data,
                                 config: {
                                     ...node.data.config,
-                                    outputText: response.data.result,
-                                    executionLogs: response.data.logs
+                                    outputText: response.result,
+                                    executionLogs: response.logs
                                 }
                             }
                         };
@@ -157,7 +163,9 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, initialDa
                 })
             );
 
-            alert('Workflow executed successfully! Check the Output node.');
+            // Open chat with results automatically? 
+            // Maybe just showing in node is enough as per "Output Component" requirement.
+
         } catch (error: any) {
             console.error('Execution error:', error);
             alert(`Execution failed: ${error.response?.data?.detail || error.message}`);
@@ -223,28 +231,14 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, initialDa
                 <Controls className="bg-white border-slate-200 fill-slate-500" />
                 <Background color="#cbd5e1" gap={20} size={1} />
                 <MiniMap className="bg-white border-slate-200" maskColor="rgba(241, 245, 249, 0.7)" />
-
-                <Panel position="top-right" className="flex gap-2">
-                    <button
-                        onClick={onSave}
-                        disabled={saving}
-                        className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg shadow-lg border border-slate-600 transition-all font-medium"
-                    >
-                        <Save className="w-4 h-4" />
-                        {saving ? 'Saving...' : 'Save'}
-                    </button>
-                    <button
-                        onClick={onRunWorkflow}
-                        disabled={isExecuting}
-                        className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 disabled:bg-green-400 disabled:cursor-not-allowed text-white rounded-lg shadow-lg shadow-green-900/20 transition-all font-medium"
-                    >
-                        <Play className={`w-4 h-4 ${isExecuting ? 'animate-pulse' : ''}`} />
-                        {isExecuting ? 'Executing...' : 'Run Workflow'}
-                    </button>
-                </Panel>
             </ReactFlow>
 
-            <ConfigPanel selectedNode={selectedNode} setNodes={setNodes} />
+            {/* Config Panel - Only show when node is selected */}
+            {selectedNode && (
+                <div className="absolute top-4 right-4 z-10 max-h-[calc(100vh-120px)] overflow-y-auto">
+                    <ConfigPanel selectedNode={selectedNode} setNodes={setNodes} onClose={() => setSelectedNode(null)} />
+                </div>
+            )}
 
             <ChatInterface
                 isOpen={isChatOpen}

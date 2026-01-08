@@ -4,12 +4,24 @@ import WorkflowBuilder from '../components/WorkflowBuilder';
 import Sidebar from '../components/Sidebar';
 import { ReactFlowProvider } from 'reactflow';
 import axios from 'axios';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Play, Save } from 'lucide-react';
 
 const Editor = () => {
     const { id } = useParams();
     const [workflowName, setWorkflowName] = useState("Untitled Stack");
     const [initialData, setInitialData] = useState(null);
+
+    const handleRun = () => {
+        if ((window as any).runWorkflow) {
+            (window as any).runWorkflow();
+        }
+    };
+
+    const handleSave = () => {
+        if ((window as any).saveWorkflow) {
+            (window as any).saveWorkflow();
+        }
+    };
 
     useEffect(() => {
         if (id) {
@@ -42,8 +54,21 @@ const Editor = () => {
                 </div>
                 <div className="flex items-center gap-3">
                     <span className="text-xs text-slate-400">Auto-saved</span>
-                    <button className="bg-white text-slate-600 px-3 py-1.5 rounded-md text-sm border border-slate-200 hover:bg-slate-50">Settings</button>
-                    <button className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-md text-sm font-medium">Share</button>
+                    <button 
+                        onClick={handleSave}
+                        className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-md text-sm font-medium transition-colors"
+                    >
+                        <Save className="w-4 h-4" />
+                        Save
+                    </button>
+                    <button 
+                        onClick={handleRun}
+                        className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-md text-sm font-medium transition-colors shadow-lg shadow-green-600/30"
+                    >
+                        <Play className="w-4 h-4" />
+                        Run Workflow
+                    </button>
+                    <button className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors">Share</button>
                 </div>
             </div>
 

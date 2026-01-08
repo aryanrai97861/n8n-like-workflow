@@ -3,13 +3,17 @@ from app.core.config import settings
 from typing import Optional
 
 genai.configure(api_key=settings.GOOGLE_API_KEY)
-model = genai.GenerativeModel('gemini-pro')
+
+# Available Gemini models
+AVAILABLE_MODELS = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.0-flash"]
+DEFAULT_MODEL = "gemini-1.5-flash"
 
 async def generate_response(
     prompt: str, 
     context: str = "", 
     api_key: Optional[str] = None,
-    use_web_search: bool = False
+    use_web_search: bool = False,
+    model_name: str = DEFAULT_MODEL
 ) -> str:
     """
     Generate response using Google Gemini.
@@ -19,6 +23,7 @@ async def generate_response(
         context: Optional context from knowledge base
         api_key: Optional custom API key
         use_web_search: Whether to include web search (requires SerpAPI)
+        model_name: Gemini model to use
     
     Returns:
         Generated response text
@@ -44,8 +49,12 @@ async def generate_response(
         if context:
             full_prompt = f"Context:\n{context}\n\nQuestion:\n{prompt}"
         
+        # Use correct model name - map old names to new
+        if model_name in ["gemini-pro", "gpt-4o-mini", "GPT-4o-Mini"]:
+            model_name = DEFAULT_MODEL
+        
         # Generate response
-        model = genai.GenerativeModel('gemini-pro')
+        model = genai.GenerativeModel(model_name)
         response = model.generate_content(full_prompt)
         
         return response.text

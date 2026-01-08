@@ -8,9 +8,10 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 interface ConfigPanelProps {
     selectedNode: Node | null;
     setNodes: React.Dispatch<React.SetStateAction<Node[]>>;
+    onClose?: () => void;
 }
 
-const ConfigPanel: React.FC<ConfigPanelProps> = ({ selectedNode, setNodes }) => {
+const ConfigPanel: React.FC<ConfigPanelProps> = ({ selectedNode, setNodes, onClose }) => {
     const [config, setConfig] = useState<any>({});
     const [uploading, setUploading] = useState(false);
     const [uploadStatus, setUploadStatus] = useState('');
@@ -283,35 +284,31 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ selectedNode, setNodes }) => 
     };
 
     if (!selectedNode) {
-        return (
-            <div className="absolute right-4 top-4 w-64 p-4 bg-slate-900 border border-slate-700 rounded-lg shadow-xl text-slate-400 text-sm">
-                Select a node to configure it.
-            </div>
-        );
+        return null;
     }
 
     return (
-        <div className="absolute top-0 right-0 h-full w-96 bg-white border-l border-slate-200 shadow-2xl z-50 overflow-y-auto">
-            <div className="sticky top-0 bg-gradient-to-r from-slate-700 to-slate-800 text-white p-4 flex items-center justify-between border-b border-slate-600 shadow-lg">
+        <div className="w-96 bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden">
+            <div className="bg-gradient-to-r from-slate-700 to-slate-800 text-white p-4 flex items-center justify-between border-b border-slate-600">
                 <div className="flex items-center gap-3">
                     <Settings className="w-5 h-5" />
                     <h2 className="text-lg font-bold">{getNodeTitle()}</h2>
                 </div>
                 <button
-                    onClick={() => setNodes((nds) => nds.map((n) => ({ ...n, selected: false })))}
+                    onClick={onClose}
                     className="p-1 hover:bg-white/10 rounded-lg transition-colors"
                 >
                     <X className="w-5 h-5" />
                 </button>
             </div>
 
-            <div className="p-6">
+            <div className="p-6 max-h-[600px] overflow-y-auto">
                 {renderConfig()}
             </div>
 
-            <div className="sticky bottom-0 bg-gradient-to-t from-white via-white to-transparent p-4 border-t border-slate-200">
+            <div className="bg-gradient-to-t from-white via-white to-transparent p-4 border-t border-slate-200">
                 <button
-                    onClick={() => setNodes((nds) => nds.map((n) => ({ ...n, selected: false })))}
+                    onClick={onClose}
                     className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-2.5 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all shadow-md hover:shadow-lg"
                 >
                     Done

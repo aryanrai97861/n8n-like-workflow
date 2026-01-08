@@ -23,7 +23,7 @@ const NodeCard = ({ title, icon: Icon, children, selected }: any) => (
 
 export const UserQueryNode = memo(({ data, selected }: NodeProps) => {
     const query = data.config?.query || '';
-    
+
     return (
         <>
             <NodeCard title="User Input" icon={MessageSquare} selected={selected}>
@@ -44,10 +44,50 @@ export const UserQueryNode = memo(({ data, selected }: NodeProps) => {
     );
 });
 
-export const KnowledgeBaseNode = memo(({ data, selected }: NodeProps) => {
+// Helper component to separate logic and avoid hook rules issues inside memo? 
+// No, memo is fine. But we need to make sure we import useReactFlow
+import { useReactFlow } from 'reactflow';
+
+export const KnowledgeBaseNode = memo(({ id, data, selected }: NodeProps) => {
     const fileName = data.config?.filename || "No file selected";
     const embeddingModel = data.config?.embeddingModel || "text-embedding-3-large";
     const apiKey = data.config?.apiKey || "";
+    const [uploading, setUploading] = React.useState(false);
+    const { setNodes } = useReactFlow();
+
+    const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploading(true);
+        try {
+            const { uploadDocument } = await import('../services/api');
+            const response = await uploadDocument(file);
+
+            // Update the node data with filename and file_id
+            setNodes((nds) => nds.map((node) => {
+                if (node.id === id) {
+                    return {
+                        ...node,
+                        data: {
+                            ...node.data,
+                            config: {
+                                ...node.data.config,
+                                filename: file.name,
+                                fileId: response.file_id
+                            }
+                        }
+                    };
+                }
+                return node;
+            }));
+        } catch (error) {
+            console.error("Upload failed", error);
+            alert("Failed to upload document");
+        } finally {
+            setUploading(false);
+        }
+    };
 
     return (
         <>
@@ -59,10 +99,24 @@ export const KnowledgeBaseNode = memo(({ data, selected }: NodeProps) => {
                     {/* File Upload */}
                     <div>
                         <label className="block text-xs font-medium text-slate-600 mb-1.5">File for Knowledge Base</label>
-                        <div className="border-2 border-dashed border-slate-300 rounded-lg p-3 text-center hover:border-green-400 hover:bg-green-50/30 transition-all cursor-pointer">
-                            <p className="text-sm font-medium text-slate-700 truncate">{fileName}</p>
-                            {fileName !== "No file selected" && (
-                                <p className="text-xs text-green-600 mt-1">✓ Uploaded</p>
+                        <div className="relative border-2 border-dashed border-slate-300 rounded-lg p-3 text-center hover:border-green-400 hover:bg-green-50/30 transition-all cursor-pointer group">
+                            <input
+                                type="file"
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                onChange={handleUpload}
+                                accept=".pdf,.txt,.md"
+                            />
+                            {uploading ? (
+                                <p className="text-sm font-medium text-slate-700 animate-pulse">Uploading...</p>
+                            ) : (
+                                <>
+                                    <p className="text-sm font-medium text-slate-700 truncate px-2">{fileName}</p>
+                                    {fileName !== "No file selected" ? (
+                                        <p className="text-xs text-green-600 mt-1">✓ Uploaded</p>
+                                    ) : (
+                                        <p className="text-xs text-slate-400 mt-1 group-hover:text-green-600">Click to browse</p>
+                                    )}
+                                </>
                             )}
                         </div>
                     </div>
@@ -191,7 +245,7 @@ export const LLMNode = memo(({ data, selected }: NodeProps) => {
 export const OutputNode = memo(({ data, selected }: NodeProps) => {
     const outputText = data.config?.outputText || "";
     const executionLogs = data.config?.executionLogs || [];
-    
+
     return (
         <>
             <Handle type="target" position={Position.Left} className="!bg-orange-500 !w-3 !h-3 !border-2 !border-white" />
@@ -199,13 +253,14 @@ export const OutputNode = memo(({ data, selected }: NodeProps) => {
                 <div className="space-y-2">
                     <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Final Result</label>
                     <div>
-                        <div className="bg-slate-50 border border-slate-300 rounded-lg p-3 min-h-[100px] max-h-[200px] overflow-y-auto">
+                        <div className={`border rounded-lg p-3 min-h-[100px] max-h-[200px] overflow-y-auto ${outputText ? 'bg-green-50 border-green-300' : 'bg-slate-50 border-slate-300'
+                            }`}>
                             {outputText ? (
                                 <div>
                                     <p className="text-xs text-slate-700 whitespace-pre-wrap leading-relaxed">{outputText}</p>
                                     {executionLogs.length > 0 && (
-                                        <details className="mt-3 text-xs border-t border-slate-300 pt-2">
-                                            <summary className="cursor-pointer text-slate-500 hover:text-slate-700 font-medium">
+                                        <details className="mt-3 text-xs border-t border-green-300 pt-2">
+                                            <summary className="cursor-pointer text-slate-600 hover:text-slate-800 font-medium">
                                                 Execution Logs ({executionLogs.length})
                                             </summary>
                                             <ul className="mt-2 space-y-1 text-slate-600 pl-4 list-disc">

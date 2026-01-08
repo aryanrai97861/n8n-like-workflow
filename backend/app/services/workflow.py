@@ -116,7 +116,8 @@ async def execute_workflow(workflow: Workflow, user_query: str) -> ExecutionResp
                     prompt=final_prompt, 
                     context="",  # Context already included in prompt
                     api_key=api_key,
-                    use_web_search=use_web_search
+                    use_web_search=use_web_search,
+                    model_name=model_name
                 )
                 output = response
                 execution_logs.append("LLM response generated successfully")
