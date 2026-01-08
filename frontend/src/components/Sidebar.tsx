@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageSquare, FileText, Cpu, MessageCircle } from 'lucide-react';
+import { MessageSquare, Database, Settings, SquareStack, MessageCircle } from 'lucide-react';
 
 const Sidebar = () => {
     const onDragStart = (event: React.DragEvent, nodeType: string) => {
@@ -8,57 +8,83 @@ const Sidebar = () => {
     };
 
     return (
-        <aside className="w-64 bg-slate-900 border-r border-slate-700 p-4 flex flex-col gap-4">
-            <div className="text-xl font-bold bg-linear-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent mb-4">
-                Workflow Builder
+        <aside className="w-56 bg-white border-r border-slate-200 flex flex-col">
+            {/* Header */}
+            <div className="p-4 border-b border-slate-200">
+                <h2 className="text-lg font-semibold text-slate-800">Componentes</h2>
             </div>
 
-            <div className="space-y-3">
-                <div className="text-sm text-slate-400 font-medium uppercase tracking-wider">Components</div>
+            {/* Chat With AI Button */}
+            <div className="p-4 border-b border-slate-200">
+                <button
+                    onClick={() => {
+                        if ((window as any).openChat) {
+                            (window as any).openChat();
+                        }
+                    }}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                >
+                    <MessageCircle className="w-4 h-4" />
+                    Chat With AI
+                </button>
+            </div>
 
-                <div className="grid gap-3">
-                    <div
-                        className="flex items-center gap-3 p-3 bg-slate-800 rounded-lg cursor-grab hover:bg-slate-700 transition-colors border border-slate-700 hover:border-blue-500/50"
-                        onDragStart={(event) => onDragStart(event, 'user_query')}
-                        draggable
-                    >
-                        <MessageSquare className="w-5 h-5 text-blue-400" />
-                        <span className="font-medium">User Query</span>
+            {/* Component List */}
+            <div className="p-4 space-y-3 flex-1">
+                {/* User Query */}
+                <div
+                    className="flex items-center gap-3 p-3 bg-white rounded-lg cursor-grab hover:bg-slate-50 transition-colors border border-slate-200 hover:border-blue-400 hover:shadow-sm"
+                    onDragStart={(event) => onDragStart(event, 'user_query')}
+                    draggable
+                >
+                    <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                        <MessageSquare className="w-4 h-4 text-blue-600" />
                     </div>
+                    <span className="font-medium text-slate-700 text-sm">User Query</span>
+                </div>
 
-                    <div
-                        className="flex items-center gap-3 p-3 bg-slate-800 rounded-lg cursor-grab hover:bg-slate-700 transition-colors border border-slate-700 hover:border-green-500/50"
-                        onDragStart={(event) => onDragStart(event, 'knowledge_base')}
-                        draggable
-                    >
-                        <FileText className="w-5 h-5 text-green-400" />
-                        <span className="font-medium">Knowledge Base</span>
+                {/* LLM (Gemini) */}
+                <div
+                    className="flex items-center gap-3 p-3 bg-white rounded-lg cursor-grab hover:bg-slate-50 transition-colors border border-slate-200 hover:border-purple-400 hover:shadow-sm"
+                    onDragStart={(event) => onDragStart(event, 'llm_engine')}
+                    draggable
+                >
+                    <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
+                        <Settings className="w-4 h-4 text-purple-600" />
                     </div>
+                    <span className="font-medium text-slate-700 text-sm">LLM (Gemini)</span>
+                </div>
 
-                    <div
-                        className="flex items-center gap-3 p-3 bg-slate-800 rounded-lg cursor-grab hover:bg-slate-700 transition-colors border border-slate-700 hover:border-purple-500/50"
-                        onDragStart={(event) => onDragStart(event, 'llm_engine')}
-                        draggable
-                    >
-                        <Cpu className="w-5 h-5 text-purple-400" />
-                        <span className="font-medium">LLM Engine</span>
+                {/* Knowledge Base */}
+                <div
+                    className="flex items-center gap-3 p-3 bg-white rounded-lg cursor-grab hover:bg-slate-50 transition-colors border border-slate-200 hover:border-green-400 hover:shadow-sm"
+                    onDragStart={(event) => onDragStart(event, 'knowledge_base')}
+                    draggable
+                >
+                    <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
+                        <Database className="w-4 h-4 text-green-600" />
                     </div>
+                    <span className="font-medium text-slate-700 text-sm">Knowledge Base</span>
+                </div>
 
-                    <div
-                        className="flex items-center gap-3 p-3 bg-slate-800 rounded-lg cursor-grab hover:bg-slate-700 transition-colors border border-slate-700 hover:border-orange-500/50"
-                        onDragStart={(event) => onDragStart(event, 'output')}
-                        draggable
-                    >
-                        <MessageCircle className="w-5 h-5 text-orange-400" />
-                        <span className="font-medium">Output</span>
+                {/* Output */}
+                <div
+                    className="flex items-center gap-3 p-3 bg-white rounded-lg cursor-grab hover:bg-slate-50 transition-colors border border-slate-200 hover:border-orange-400 hover:shadow-sm"
+                    onDragStart={(event) => onDragStart(event, 'output')}
+                    draggable
+                >
+                    <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
+                        <SquareStack className="w-4 h-4 text-orange-600" />
                     </div>
+                    <span className="font-medium text-slate-700 text-sm">Output</span>
                 </div>
             </div>
 
-            <div className="mt-auto">
-                <div className="p-4 bg-slate-800/50 rounded-xl border border-slate-700/50 text-xs text-slate-400">
+            {/* Help text */}
+            <div className="p-4 border-t border-slate-200">
+                <p className="text-xs text-slate-500">
                     Drag components to the canvas to build your workflow.
-                </div>
+                </p>
             </div>
         </aside>
     );

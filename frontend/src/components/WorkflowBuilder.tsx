@@ -5,17 +5,14 @@ import ReactFlow, {
     useEdgesState,
     Controls,
     Background,
-    MiniMap,
-    Panel
+    MiniMap
 } from 'reactflow';
 import type {
     Node,
     Connection,
-    Edge,
     ReactFlowInstance
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { Play, Save } from 'lucide-react';
 import axios from 'axios';
 
 import {
@@ -241,12 +238,12 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, initialDa
                 onNodeClick={onNodeClick}
                 onPaneClick={onPaneClick}
                 fitView
-                className="bg-slate-50"
+                className="bg-[#F9FAFB]"
                 nodeTypes={nodeTypes}
             >
-                <Controls className="bg-white border-slate-200 fill-slate-500" />
-                <Background color="#cbd5e1" gap={20} size={1} />
-                <MiniMap className="bg-white border-slate-200" maskColor="rgba(241, 245, 249, 0.7)" />
+                <Controls className="!bg-white !border-slate-200 !shadow-sm" />
+                <Background color="#E2E8F0" gap={16} size={1} />
+                <MiniMap className="!bg-white !border-slate-200" nodeColor="#EBF0FF" maskColor="rgba(249, 250, 251, 0.8)" />
             </ReactFlow>
 
             {/* Config Panel - Only show when node is selected */}
