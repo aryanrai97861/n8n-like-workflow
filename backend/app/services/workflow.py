@@ -79,9 +79,11 @@ async def execute_workflow(workflow: Workflow, user_query: str) -> ExecutionResp
             elif current_node.type == 'llm_engine':
                 # LLM Engine processes query with optional context
                 # Parse input to extract query and context
-                prompt_text = current_node.data.config.get("prompt", "")
+                prompt_text = current_node.data.config.get("prompt", "You are a helpful PDF assistant. Use web search if the PDF lacks context.\\n\\nCONTEXT: {context}\\nUser Query: {query}")
                 api_key = current_node.data.config.get("apiKey")
                 use_web_search = current_node.data.config.get("useWebSearch", False)
+                model_name = current_node.data.config.get("model", "gemini-pro")
+                temperature = float(current_node.data.config.get("temperature", 0.75))
                 
                 # Extract context and query from input
                 context = ""
@@ -95,23 +97,29 @@ async def execute_workflow(workflow: Workflow, user_query: str) -> ExecutionResp
                     # If no special format, treat input as query
                     query = node_input
                 
-                # Build final prompt
-                final_prompt = query
-                if prompt_text:
-                    final_prompt = f"{prompt_text}\n\n{query}"
+                # Replace placeholders in prompt template
+                if "{context}" in prompt_text and "{query}" in prompt_text:
+                    final_prompt = prompt_text.replace("{context}", context).replace("{query}", query)
+                elif prompt_text:
+                    final_prompt = f"{prompt_text}\\n\\nContext: {context}\\n\\nUser Query: {query}" if context else f"{prompt_text}\\n\\n{query}"
+                else:
+                    final_prompt = f"Context: {context}\\n\\nUser Query: {query}" if context else query
                 
-                execution_logs.append(f"Sending to LLM with {len(context)} chars context")
+                execution_logs.append(f"Using model: {model_name}")
+                execution_logs.append(f"Temperature: {temperature}")
+                if context:
+                    execution_logs.append(f"Context length: {len(context)} chars")
                 if use_web_search:
                     execution_logs.append("Web search enabled")
                     
                 response = await generate_response(
                     prompt=final_prompt, 
-                    context=context, 
+                    context="",  # Context already included in prompt
                     api_key=api_key,
                     use_web_search=use_web_search
                 )
                 output = response
-                execution_logs.append("LLM response received")
+                execution_logs.append("LLM response generated successfully")
                 
             elif current_node.type == 'output':
                 # Output node receives final result

@@ -1,11 +1,15 @@
 import os
 from pydantic_settings import BaseSettings
 
+# Get absolute path to backend directory to avoid Git Bash path mangling
+_backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_chroma_path = os.path.join(_backend_dir, "chroma_db")
+
 class Settings(BaseSettings):
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./test.db")
     GOOGLE_API_KEY: str = os.getenv("GOOGLE_API_KEY", "")
     SERPAPI_API_KEY: str = os.getenv("SERPAPI_API_KEY", "")
-    CHROMA_DB_PATH: str = os.getenv("CHROMA_DB_PATH", "./chroma_db")
+    CHROMA_DB_PATH: str = os.getenv("CHROMA_DB_PATH", _chroma_path)
 
     class Config:
         env_file = ".env"

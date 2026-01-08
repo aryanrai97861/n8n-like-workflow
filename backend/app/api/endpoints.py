@@ -27,7 +27,10 @@ async def execute_workflow_endpoint(request: ExecutionRequest):
 @router.post("/upload")
 async def upload_document(file: UploadFile = File(...)):
     try:
-        temp_path = f"temp_{file.filename}"
+        # Create temp directory if it doesn't exist
+        os.makedirs("temp_uploads", exist_ok=True)
+        
+        temp_path = f"temp_uploads/temp_{file.filename}"
         with open(temp_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
             
@@ -35,12 +38,20 @@ async def upload_document(file: UploadFile = File(...)):
         doc = fitz.open(temp_path)
         for page in doc:
             text += page.get_text()
+        doc.close()
             
-        add_document(text, file.filename)
+        file_id = add_document(text, file.filename)
         os.remove(temp_path)
         
-        return {"message": f"Document {file.filename} processed successfully", "text_length": len(text)}
+        return {
+            "message": f"Document {file.filename} processed successfully", 
+            "text_length": len(text),
+            "file_id": file_id or file.filename
+        }
     except Exception as e:
+        import traceback
+        error_detail = f"{str(e)}\n{traceback.format_exc()}"
+        print(f"Upload error: {error_detail}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # CRUD Endpoints

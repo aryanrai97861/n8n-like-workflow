@@ -2,6 +2,12 @@ import chromadb
 import google.generativeai as genai
 from chromadb.utils import embedding_functions
 from app.core.config import settings
+import os
+
+# Get the absolute path for ChromaDB - bypass settings to avoid Git Bash path mangling
+_current_dir = os.path.dirname(os.path.abspath(__file__))
+_backend_dir = os.path.dirname(os.path.dirname(_current_dir))
+CHROMA_DB_PATH = os.path.join(_backend_dir, "chroma_db")
 
 # Initialize Gemini Embeddings
 # Note: ChromaDB's default Google support might differ, so we can wrap it or use a custom function.
@@ -19,19 +25,46 @@ class GeminiEmbeddingFunction(chromadb.EmbeddingFunction):
              embeddings.append(result['embedding'])
         return embeddings
 
-client = chromadb.PersistentClient(path=settings.CHROMA_DB_PATH)
-embedding_fn = GeminiEmbeddingFunction()
-collection = client.get_or_create_collection(name="knowledge_base", embedding_function=embedding_fn)
+# Lazy initialization to avoid path issues on Windows
+_client = None
+_collection = None
+
+def get_collection():
+    global _client, _collection
+    if _collection is None:
+        # Use our computed absolute path
+        print(f"ChromaDB Path: {CHROMA_DB_PATH}")
+        os.makedirs(CHROMA_DB_PATH, exist_ok=True)
+        _client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
+        embedding_fn = GeminiEmbeddingFunction()
+        _collection = _client.get_or_create_collection(name="knowledge_base", embedding_function=embedding_fn)
+    return _collection
 
 def add_document(text: str, filename: str):
-    # Chunking logic could go here. For now, simple text.
-    collection.add(
-        documents=[text],
-        metadatas=[{"source": filename}],
-        ids=[filename] # Simple ID for now
-    )
+    """Add a document to the vector store with chunking support"""
+    try:
+        collection = get_collection()
+        # Simple chunking - split into smaller parts for better retrieval
+        chunk_size = 1000
+        chunks = [text[i:i+chunk_size] for i in range(0, len(text), chunk_size)]
+        
+        # Add each chunk with unique ID
+        for i, chunk in enumerate(chunks):
+            doc_id = f"{filename}_{i}"
+            collection.add(
+                documents=[chunk],
+                metadatas=[{"source": filename, "chunk": i}],
+                ids=[doc_id]
+            )
+        
+        print(f"Added {len(chunks)} chunks from {filename}")
+        return filename
+    except Exception as e:
+        print(f"Error adding document: {e}")
+        raise e
 
 def query_documents(query: str, n_results: int = 3) -> str:
+    collection = get_collection()
     # Need to switch task_type for query if using strict API, but generic works
     results = collection.query(
         query_texts=[query],

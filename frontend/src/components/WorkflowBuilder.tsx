@@ -102,9 +102,68 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, initialDa
         setSelectedNode(null);
     }, []);
 
-    const onRunWorkflow = () => {
-        // Validate workflow?
-        setIsChatOpen(true);
+    const [isExecuting, setIsExecuting] = useState(false);
+
+    const onRunWorkflow = async () => {
+        // Find the User Query node to get the query
+        const userQueryNode = nodes.find(n => n.type === 'user_query');
+        if (!userQueryNode || !userQueryNode.data?.config?.query) {
+            alert('Please configure the User Query node with a question first!');
+            return;
+        }
+
+        setIsExecuting(true);
+
+        try {
+            const workflowDef = {
+                nodes: nodes.map(n => ({
+                    id: n.id,
+                    type: n.type,
+                    position: n.position,
+                    data: n.data
+                })),
+                edges: edges.map(e => ({
+                    id: e.id,
+                    source: e.source,
+                    target: e.target,
+                    sourceHandle: e.sourceHandle,
+                    targetHandle: e.targetHandle
+                }))
+            };
+
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+            const response = await axios.post(`${apiUrl}/api/execute`, {
+                workflow: workflowDef,
+                user_query: userQueryNode.data.config.query
+            });
+
+            // Update the Output node with the result
+            setNodes(nds =>
+                nds.map(node => {
+                    if (node.type === 'output') {
+                        return {
+                            ...node,
+                            data: {
+                                ...node.data,
+                                config: {
+                                    ...node.data.config,
+                                    outputText: response.data.result,
+                                    executionLogs: response.data.logs
+                                }
+                            }
+                        };
+                    }
+                    return node;
+                })
+            );
+
+            alert('Workflow executed successfully! Check the Output node.');
+        } catch (error: any) {
+            console.error('Execution error:', error);
+            alert(`Execution failed: ${error.response?.data?.detail || error.message}`);
+        } finally {
+            setIsExecuting(false);
+        }
     };
 
     const onSave = async () => {
@@ -176,10 +235,11 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, initialDa
                     </button>
                     <button
                         onClick={onRunWorkflow}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg shadow-lg shadow-blue-900/20 transition-all font-medium"
+                        disabled={isExecuting}
+                        className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-500 disabled:bg-green-400 disabled:cursor-not-allowed text-white rounded-lg shadow-lg shadow-green-900/20 transition-all font-medium"
                     >
-                        <Play className="w-4 h-4" />
-                        Build & Run
+                        <Play className={`w-4 h-4 ${isExecuting ? 'animate-pulse' : ''}`} />
+                        {isExecuting ? 'Executing...' : 'Run Workflow'}
                     </button>
                 </Panel>
             </ReactFlow>
