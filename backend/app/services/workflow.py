@@ -104,7 +104,8 @@ async def execute_workflow(workflow: Workflow, user_query: str) -> ExecutionResp
                 
                 # Let's use the global user_query + input (which is context).
                 context = node_input
-                response = await generate_response(prompt=user_query, context=context)
+                api_key = current_node.data.config.get("apiKey")
+                response = await generate_response(prompt=user_query, context=context, api_key=api_key)
                 output = response
             elif current_node.type == 'output':
                 output = node_input

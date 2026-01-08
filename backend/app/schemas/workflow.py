@@ -27,3 +27,16 @@ class ExecutionRequest(BaseModel):
 class ExecutionResponse(BaseModel):
     result: str
     logs: List[str] = []
+
+class WorkflowCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    definition: Workflow
+
+class WorkflowDB(WorkflowCreate):
+    id: int
+    created_at: Any # datetime
+    updated_at: Optional[Any] # datetime
+
+    class Config:
+        from_attributes = True

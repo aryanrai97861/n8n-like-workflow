@@ -45,7 +45,7 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ selectedNode, setNodes }) => 
 
         try {
             const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-            const res = await axios.post(`${apiUrl}/api/upload`, formData, {
+            await axios.post(`${apiUrl}/api/upload`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
             handleConfigChange('filename', file.name);
@@ -96,6 +96,14 @@ const ConfigPanel: React.FC<ConfigPanelProps> = ({ selectedNode, setNodes }) => 
 
             {selectedNode.type === 'llm_engine' && (
                 <div className="flex flex-col gap-3">
+                    <label className="text-sm font-medium text-slate-300">API Key (Optional)</label>
+                    <input
+                        type="password"
+                        className="w-full bg-slate-800 border border-slate-600 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-blue-500"
+                        placeholder="sk-..."
+                        value={config.apiKey || ''}
+                        onChange={(e) => handleConfigChange('apiKey', e.target.value)}
+                    />
                     <label className="text-sm font-medium text-slate-300">Custom Prompt System</label>
                     <textarea
                         className="w-full h-32 bg-slate-800 border border-slate-600 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-blue-500"
